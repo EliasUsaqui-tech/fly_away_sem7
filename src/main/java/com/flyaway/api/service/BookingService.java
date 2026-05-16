@@ -1,6 +1,8 @@
 package com.flyaway.api.service;
+
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.temporal.ChronoUnit;
 import com.flyaway.api.dto.BookingResponseDTO;
 import com.flyaway.api.dto.FlightBookRequestDTO;
 import com.flyaway.api.dto.NewIdDTO;
@@ -48,10 +50,12 @@ public class BookingService {
         flight.setAvailableSeats(flight.getAvailableSeats() - 1);
         flightService.save(flight);
 
+        Instant bookingDate = Instant.now().truncatedTo(ChronoUnit.MICROS);
+
         Booking booking = new Booking();
         booking.setFlight(flight);
         booking.setUser(currentUser);
-        booking.setBookingDate(Instant.now());
+        booking.setBookingDate(bookingDate);
 
         Booking saved = bookingRepository.save(booking);
         sendEmailFile(saved);
@@ -77,19 +81,21 @@ public class BookingService {
         dto.setEstArrivalTime(booking.getFlight().getEstArrivalTime());
         return dto;
     }
+
     public void deleteAll() {
         bookingRepository.deleteAll();
     }
 
     private void sendEmailFile(Booking booking) {
-        String path = "C:\\Users\\HP\\Desktop\\-cs2031-2026-1-week07-tester\\flight_booking_email_" + booking.getId() + ".txt";
+        String path = "flight_booking_email_" + booking.getId() + ".txt";
 
         String content = "Hello " + booking.getUser().getFirstName() + " " + booking.getUser().getLastName() + ",\n\n" +
-                "Your booking was successful! \n\n" +
+                "Your booking was successful!\n\n" +
                 "The booking is for flight " + booking.getFlight().getFlightNumber() +
                 " with departure date of " + booking.getFlight().getEstDepartureTime().toString() +
                 " and arrival date of " + booking.getFlight().getEstArrivalTime().toString() + ".\n\n" +
                 "The booking was registered at " + booking.getBookingDate().toString() + ".\n\n" +
+                "bookingDate: " + booking.getBookingDate().toString() + "\n" +
                 "Bon Voyage!\n" +
                 "Fly Away Travel";
 
